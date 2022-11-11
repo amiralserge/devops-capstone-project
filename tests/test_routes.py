@@ -140,9 +140,31 @@ class TestAccountService(TestCase):
         self.assertEqual(account.name, read_data["name"])
 
     def test_account_not_found(self):
-        """It should not Read a non existing account """
+        """It should not Read a non existing account"""
         response = self.client.get(f"{BASE_URL}/0")
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
+    def test_update_an_account(self):
+        """It should update an existing account"""
+        account = AccountFactory()
+        response = self.client.post(
+            BASE_URL,
+            json=account.serialize(),
+            content_type='application/json'
+        )
+        created_account_id = response.get_json()["id"]
 
+        old_name = account.name
+        new_name = "John 117"
+        account.name = new_name
 
+        response = self.client.put(
+            f"{BASE_URL}/{created_account_id}",
+            json=account.serialize(),
+            content_type='application/json'
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        response_data = response.get_json()
+        self.assertEqual(response_data["name"], new_name)
+        self.assertNotEqual(response_data["name"], old_name)
