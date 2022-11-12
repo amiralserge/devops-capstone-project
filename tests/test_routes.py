@@ -193,3 +193,15 @@ class TestAccountService(TestCase):
         response = self.client.delete(f"{BASE_URL}/0")
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertEqual(response.text, "")
+
+    def test_list_accounts(self):
+        """It should list all existing accounts"""
+        accounts_list = [a.serialize() for a in self._create_accounts(10)]
+        response = self.client.get(BASE_URL)
+        accounts_list_from_server = response.get_json()
+        self.assertListEqual(accounts_list_from_server, accounts_list)
+
+    def test_list_accounts_should_never_return_404(self):
+        """List account endpoint should nerver return 404"""
+        response = self.client.get(BASE_URL)
+        self.assertNotEqual(response.status_code, status.HTTP_404_NOT_FOUND)
