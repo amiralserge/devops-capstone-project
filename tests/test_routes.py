@@ -168,3 +168,13 @@ class TestAccountService(TestCase):
         response_data = response.get_json()
         self.assertEqual(response_data["name"], new_name)
         self.assertNotEqual(response_data["name"], old_name)
+
+    def test_update_a_non_existing_account(self):
+        """It should not update a non existing account"""
+        account = AccountFactory()
+        response = self.client.put(
+            f"{BASE_URL}/0",
+            json=account.serialize(),
+            content_type='application/json'
+        )
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
