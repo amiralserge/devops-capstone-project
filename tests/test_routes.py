@@ -12,12 +12,15 @@ from tests.factories import AccountFactory
 from service.common import status  # HTTP Status Codes
 from service.models import db, Account, init_db
 from service.routes import app
+from service import talisman
 
 DATABASE_URI = os.getenv(
     "DATABASE_URI", "postgresql://postgres:postgres@localhost:5432/postgres"
 )
 
 BASE_URL = "/accounts"
+
+HTTPS_ENVIRON = {'wsgi.url_scheme': 'https'}
 
 
 ######################################################################
@@ -34,6 +37,7 @@ class TestAccountService(TestCase):
         app.config["SQLALCHEMY_DATABASE_URI"] = DATABASE_URI
         app.logger.setLevel(logging.CRITICAL)
         init_db(app)
+        talisman.force_https = False
 
     @classmethod
     def tearDownClass(cls):
@@ -205,3 +209,25 @@ class TestAccountService(TestCase):
         """List account endpoint should nerver return 404"""
         response = self.client.get(BASE_URL)
         self.assertNotEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+
+class TestSecurity(TestCase):
+    """Security Tests"""
+
+    def setUp(self):
+        self.client = app.test_client()
+
+    def test_security_headers(self):
+        """It should return secured headers"""
+        response = self.client.get("/")
+        expected_headers = {
+            'X-Frame-Options': 'SAMEORIGIN',
+            'X-XSS-Protection': '1; mode=block',
+            'X-Content-Type-Options': 'nosniff',
+            'Content-Security-Policy': "default-src 'self'; object-src 'none'",
+            'Referrer-Policy': 'strict-origin-when-cross-origin',
+        }
+        for header, expected_value in expected_headers.items():
+            self.assertEqual(response.headers.get(header), expected_value)
+
+        
