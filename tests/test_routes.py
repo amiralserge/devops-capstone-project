@@ -218,7 +218,7 @@ class TestSecurity(TestCase):
         self.client = app.test_client()
 
     def test_security_headers(self):
-        """It should return secured headers"""
+        """Response should return secured headers"""
         response = self.client.get("/")
         expected_headers = {
             'X-Frame-Options': 'SAMEORIGIN',
@@ -227,7 +227,15 @@ class TestSecurity(TestCase):
             'Content-Security-Policy': "default-src 'self'; object-src 'none'",
             'Referrer-Policy': 'strict-origin-when-cross-origin',
         }
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         for header, expected_value in expected_headers.items():
             self.assertEqual(response.headers.get(header), expected_value)
+
+    def test_cors_policies_headers(self):
+        """Response should contain CORS headers"""
+
+        response = self.client.get("/")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.headers.get('Access-Control-Allow-Origin'), "*")
 
         
