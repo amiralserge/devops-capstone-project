@@ -57,14 +57,14 @@ def create_accounts():
         jsonify(message), status.HTTP_201_CREATED, {"Location": location_url}
     )
 
+
 ######################################################################
 # LIST ALL ACCOUNTS
 ######################################################################
-
 @app.route("/accounts", methods=["GET"])
 def list_accounts():
     """
-    List all accounts 
+    List all accounts
     This endpoint will list all existing accounts in the service
     """
     return jsonify([a.serialize() for a in Account.all()]), status.HTTP_200_OK
@@ -112,7 +112,6 @@ def update_account(account_id):
 ######################################################################
 # DELETE AN ACCOUNT
 ######################################################################
-
 @app.route("/accounts/<int:account_id>", methods=["DELETE"])
 def delete_account(account_id):
     account = Account.find(account_id)
